@@ -49,14 +49,30 @@
 (defn report-path [_]
   'foo)
 
-(defn handle-cell [{[x y] :coords path :path path-sum :path-sum :as strc}]
-  (let [val (cell x y)
-	new-path-sum (+ path-sum val)
-	right? (< x 10)
-	down? (< y 10)]
-    (cond (and right? down?) (do
-			       (handle-cell {:coords [(inc x) y] :path (cons [x y] path) :path-sum new-path-sum})
-			       (handle-cell {:coords [x (inc y)] :path (cons [x y] path) :path-sum new-path-sum}))
-	  right? (handle-cell {:coords [(inc x) y] :path (cons [x y] path) :path-sum new-path-sum})
-	  down? (handle-cell {:coords [x (inc y)] :path (cons [x y] path) :path-sum new-path-sum})
-	  :else (report-path {:path path :path-sum  path-sum}))))
+;;; naive: the O2^n rate of growth clobbers this
+;(defn handle-cell [{[x y] :coords path :path path-sum :path-sum :as strc}]
+;  (let [val (cell x y)
+;	new-path-sum (+ path-sum val)
+;	right? (< x 10)
+;	down? (< y 10)]
+;   (cond (and right? down?) (do
+;			       (handle-cell {:coords [(inc x) y] :path (cons [x y] path) :path-sum new-path-sum})
+;			       (handle-cell {:coords [x (inc y)] :path (cons [x y] path) :path-sum new-path-sum}))
+;	  right? (handle-cell {:coords [(inc x) y] :path (cons [x y] path) :path-sum new-path-sum})
+;	  down? (handle-cell {:coords [x (inc y)] :path (cons [x y] path) :path-sum new-path-sum})
+;	  :else (report-path {:path path :path-sum  path-sum}))))
+
+;;; solution: track path-sum at each location so that a handle-cell recursion path will terminate if it reaches a cell with a higher path sum that the lowest reported. This will kill off recursions such that rate of growth will be On.
+;;  So we'll have to keep track of the path-sum to each of the cells
+
+
+(def dim 12)
+(def cell-scores
+     (apply vector 
+            (map (fn [_] 
+                   (apply vector (map (fn [_] (ref nil)) 
+                                      (range dim)))) 
+                 (range dim))))
+(def cell-score (two-d-vector-lookup cell-scores))
+
+;; to do: (dosync (alter (cell-score x y) fn-that-compares val with nil and possible new value and maybe returns new value))
