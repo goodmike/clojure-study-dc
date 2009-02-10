@@ -1,3 +1,5 @@
+(ns dining_philosophers)
+
 ;;;;; The dining philosophers problem:
 ;;;;; An implementation of the Misra-Chandy solution in Clojure
 ;;;;; Michael Harrison, January 2009.
