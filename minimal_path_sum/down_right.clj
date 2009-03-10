@@ -135,3 +135,87 @@
 ; ([0 0] [1 0] [2 0] [3 0] [4 0] [5 0] [6 0] [6 1] [7 1] [7 2] [8 2] [8 3] [9 3] [10 3] [11 3] [11 4] [12 4] [13 4] [14 4] [15 4] [16 4] [17 4] [17 5] [18 5] [19 5] [20 5] [21 5] [22 5] [23 5] [23 6] [24 6] [25 6] [26 6] [27 6] [28 6] [29 6] [29 7] [29 8] [30 8] [30 9] [31 9] [31 10] [31 11] [32 11] [33 11] [33 12] [33 13] [33 14] [33 15] [33 16] [33 17] [34 17] [34 18] [34 19] [34 20] [34 21] [34 22] [35 22] [35 23] [35 24] [36 24] [37 24] [37 25] [38 25] [38 26] [39 26] [40 26] [41 26] [41 27] [42 27] [43 27] [43 28] [43 29] [43 30] [43 31] [43 32] [44 32] [45 32] [46 32] [46 33] [46 34] [46 35] [46 36] [46 37] [46 38] [46 39] [47 39] [48 39] [48 40] [48 41] [48 42] [48 43] [48 44] [49 44] [49 45] [49 46] [49 47] [50 47] [50 48] [51 48] [51 49] [52 49] [52 50] [53 50] [54 50] [55 50] [55 51] [55 52] [56 52] [57 52] [58 52] [58 53] [59 53] [60 53] [60 54] [60 55] [60 56] [60 57] [60 58] [60 59] [60 60] [60 61] [60 62] [61 62] [62 62] [63 62] [64 62] [65 62] [66 62] [66 63] [66 64] [66 65] [66 66] [66 67] [67 67] [68 67] [69 67] [70 67] [71 67] [71 68] [72 68] [72 69] [73 69] [74 69] [75 69] [76 69] [76 70] [76 71] [77 71] [77 72] [78 72] [78 73] [78 74] [78 75] [78 76] [78 77] [78 78] [78 79] [79 79])
 ; user> (:path-sum @search-results)
 ; 427337
+
+(def matrix (split-file matrix-file split-by-whitespace split-by-comma))
+
+(def dims (count matrix))
+
+(defstruct cell-report :coords :path-sum :path-history)
+
+(def test-cp0 (struct cell-report [2 1] 5 '()))
+(def test-cp1 (struct cell-report [1 1] 2 '()))
+(def test-cp2 (struct cell-report [1 1] 4 '()))
+(def test-cp3 (struct cell-report [1 2] 3 '()))
+
+(def cps (vector test-cp0 test-cp1 test-cp2 test-cp3)) 
+
+(defn lower-path-sum [cp1 cp2] 
+  (if (< (:path-sum cp1) (:path-sum cp2)) cp1 cp2))
+
+; user> (lower-path-sum test-cp2 test-cp1)
+; {:coords [1 1], :path-sum 2, :path-history ()}
+
+(defn same-coords? [cp1 cp2]
+  (= (:coords cp1) (:coords cp2)))
+
+(defn iter-reduce-reports
+  [processed-reports reports-to-do]
+  "iterative procedure that conjoins either the next report-to-do or the item among the next 2 reports-to-do that is returned by lower-path-sum"
+  (cond (nil? reports-to-do) processed-reports
+	(= (count reports-to-do) 1) (conj processed-reports (first reports-to-do))
+	(same-coords? (first reports-to-do) (second reports-to-do))
+	(recur (conj processed-reports (lower-path-sum (first reports-to-do) (second reports-to-do))) (nthrest reports-to-do 2)) 
+	:else (recur (conj processed-reports (first reports-to-do)) (rest reports-to-do))))
+
+(defn reduce-reports
+  [reports-to-do]
+  (iter-reduce-reports (vector) reports-to-do))
+	  
+ 
+; user> (same-coords? test-cp1 test-cp3)
+; false
+
+
+(def cell-val (comp #(Integer. %) (two-d-vector-lookup matrix)))
+
+(def start-report (struct cell-report [0 0] (cell-val 0 0) (vector [0 0])))
+
+(defn find-neighbor-generator [{ [x y] :coords sum :path-sum history :path-history :as report}]
+  (fn [[dx dy]]
+    (let [nx (+ x dx)
+	  ny (+ y dy)]
+      (if (and (< nx dims) (< ny dims))
+	(struct cell-report [nx ny] (+ sum (cell-val nx ny)) (conj history [nx ny]))
+	nil))))
+
+(defn report-on-neighbors [{ [x y] :coords sum :path-sum history :path-history :as report}]
+  (let [find-neighbor (find-neighbor-generator report)]
+    (pmap find-neighbor (list [0 1] [1 0]))))
+
+(defn next-reports [reports]
+  (filter #(not (nil? %)) (apply concat (map report-on-neighbors reports))))
+
+(defn completed? [reports]
+  (and (= (count reports) 1)
+       (= (inc ((:coords (reports 0)) 0)) dims)
+       (= (inc ((:coords (reports 0)) 1)) dims)))
+
+(defn advance [reports]
+  (if (completed? reports)
+    (reports 0)
+    (let [next-reports-seq (next-reports reports)]
+      (recur (reduce-reports next-reports-seq)))))
+      
+; user> (time (advance (vector start-report)))
+; "Elapsed time: 200.811 msecs"
+; {:coords [79 79], :path-sum 427337, :path-history [[0 0] [1 0] [2 0] [3 0] [4 0] [5 0] [6 0] [6 1] [7 1] [7 2] [8 2] [8 3] [9 3] [10 3] [11 3] [11 4] [12 4] [13 4] [14 4] [15 4] [16 4] [17 4] [17 5] [18 5] [19 5] [20 5] [21 5] [22 5] [23 5] [23 6] [24 6] [25 6] [26 6] [27 6] [28 6] [29 6] [29 7] [29 8] [30 8] [30 9] [31 9] [31 10] [31 11] [32 11] [33 11] [33 12] [33 13] [33 14] [33 15] [33 16] [33 17] [34 17] [34 18] [34 19] [34 20] [34 21] [34 22] [35 22] [35 23] [35 24] [36 24] [37 24] [37 25] [38 25] [38 26] [39 26] [40 26] [41 26] [41 27] [42 27] [43 27] [43 28] [43 29] [43 30] [43 31] [43 32] [44 32] [45 32] [46 32] [46 33] [46 34] [46 35] [46 36] [46 37] [46 38] [46 39] [47 39] [48 39] [48 40] [48 41] [48 42] [48 43] [48 44] [49 44] [49 45] [49 46] [49 47] [50 47] [50 48] [51 48] [51 49] [52 49] [52 50] [53 50] [54 50] [55 50] [55 51] [55 52] [56 52] [57 52] [58 52] [58 53] [59 53] [60 53] [60 54] [60 55] [60 56] [60 57] [60 58] [60 59] [60 60] [60 61] [60 62] [61 62] [62 62] [63 62] [64 62] [65 62] [66 62] [66 63] [66 64] [66 65] [66 66] [66 67] [67 67] [68 67] [69 67] [70 67] [71 67] [71 68] [72 68] [72 69] [73 69] [74 69] [75 69] [76 69] [76 70] [76 71] [77 71] [77 72] [78 72] [78 73] [78 74] [78 75] [78 76] [78 77] [78 78] [78 79] [79 79]]}
+
+;; using pmap in next-reports and report-on-neighbor
+; "Elapsed time: 1303.795 msecs"
+; "Elapsed time: 507.872 msecs"
+; "Elapsed time: 278.743 msecs"
+
+;; using map
+;  "Elapsed time: 390.865 msecs"
+;  "Elapsed time: 575.219 msecs"
+;  "Elapsed time: 203.156 msecs"
