@@ -37,5 +37,22 @@
   "count occurences of each result in a set of rows:
   [row][col], result-col => {[result occurences]}"
   [rows, result-col]
-  (reduce (fn [accum row] (assoc accum (row result-col) (inc (accum result-col)))) {} rows))
-    
+  (reduce (fn [accum row]
+	    (let [result (row result-col)
+		  rcount (or (accum result) 0)]
+	      (assoc accum result (inc rcount))))
+	  {} rows))
+
+(defn entropy-of-set
+  "Measures how different the values of the set are. No variation yields a 0.
+  The more mixed-up the set's values, the higher the number.
+  Takes a function for finding unique counts:
+  [row][col], counts-fn => double"
+  [rows count-fn]
+  (let [log2     #(/ (Math/log %) (Math/log 2))
+	last-col (dec (count (rows 0)))
+	results  (count-fn rows last-col)]
+    (reduce (fn [accum [key val]]
+	      (let [p (/ val (count rows))]
+		(- accum (* p (log2 p)))))
+	    0 results)))
