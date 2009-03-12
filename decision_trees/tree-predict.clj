@@ -56,3 +56,14 @@
 	      (let [p (/ val (count rows))]
 		(- accum (* p (log2 p)))))
 	    0 results)))
+
+;; Recursive tree-building
+(defn build-tree
+  [rows score-fn]
+  (if (= (count rows) 0)
+    (make-decision-node)
+    (let [best-gain     0.0
+	  best-criteria nil
+	  best-bets     nil
+	  col-count     (dec (count rows))]
+      (more stuff))))
