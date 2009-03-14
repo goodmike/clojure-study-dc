@@ -43,6 +43,8 @@
 	      (assoc accum result (inc rcount))))
 	  {} rows))
 
+(defn last-col [row] (dec (count row)))
+
 (defn entropy-of-set
   "Measures how different the values of the set are. No variation yields a 0.
   The more mixed-up the set's values, the higher the number.
@@ -50,7 +52,7 @@
   [row][col], counts-fn => double"
   [rows count-fn]
   (let [log2     #(/ (Math/log %) (Math/log 2))
-	last-col (dec (count (rows 0)))
+	last-col (last-col (rows 0))
 	results  (count-fn rows last-col)]
     (reduce (fn [accum [key val]]
 	      (let [p (/ val (count rows))]
@@ -66,4 +68,8 @@
 	  best-criteria nil
 	  best-bets     nil
 	  col-count     (dec (count rows))]
-      (more stuff))))
+      (for [col-num (range (last-col (rows 0)))]
+	(let [col-vals (reduce (fn [accum col] (conj accum col)) #{} (map #(% col-num) rows))]
+	  (for [col-val col-vals]
+	    (let [{true-set :true-set false-set :false-set} (divide-set rows col-num col-val)]
+	      [true-set false-set])))))))
