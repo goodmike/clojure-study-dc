@@ -27,10 +27,10 @@
    [row][col], col, test-value => {:true-set :false-set}"
   [rows col value]
   (let [test-op
-	(if (.isInstance java.lang.Number value)
+	(if (.isInstance Number value)
 	  >=
 	  =)
-	[true-set false-set] (separate #(test-op (% col) value) rows)]
+	[true-set false-set] (map vec (separate #(test-op (% col) value) rows))]
     {:true-set true-set :false-set false-set}))
 
 (defn unique-counts
@@ -50,26 +50,64 @@
   The more mixed-up the set's values, the higher the number.
   Takes a function for finding unique counts:
   [row][col], counts-fn => double"
-  [rows count-fn]
-  (let [log2     #(/ (Math/log %) (Math/log 2))
-	last-col (last-col (rows 0))
-	results  (count-fn rows last-col)]
-    (reduce (fn [accum [key val]]
-	      (let [p (/ val (count rows))]
-		(- accum (* p (log2 p)))))
-	    0 results)))
+  [count-fn rows]
+  (if (empty? rows)
+    0.0
+    (let [log2     #(/ (Math/log %) (Math/log 2))
+	  last-col (last-col (rows 0))
+	  results  (count-fn rows last-col)]
+      (reduce (fn [accum [key val]]
+		(let [p (/ val (count rows))]
+		  (- accum (* p (log2 p)))))
+	      0 results))))
+
+(def score-fn (partial entropy-of-set unique-counts)) ; pollute the global env for now
+
+(defn analyze-column [{start-score :start-score :as bests} rows col-num]
+  (let [best-branch-for-cell
+	(fn [accum cell-val]
+	  (let [{true-set :true-set false-set :false-set} (divide-set rows col-num cell-val)
+		  p (/ (count true-set) (count rows))
+		  gain (- start-score (* p (score-fn true-set)) (* (- 1 p) (score-fn false-set)))]
+	    (if (and (> gain (:gain bests))
+		     (not (nil? true-set))
+		     (not (nil? false-set)))
+	      (assoc bests
+		:gain gain
+		:criteria {:col col-num :value cell-val}
+		:sets {:true-set true-set :false-set false-set})
+	      bests)))]
+	       
+  (reduce best-branch-for-cell
+	  bests
+	  (reduce (fn [accum col] (conj accum col)) #{} (map (fn [row] (row col-num)) rows)))))
 
 ;; Recursive tree-building
+;
+;  user> (build-tree data)
+; {:col 0, :value "google", :results nil, :true-branch {:col 2, :value "yes", :results nil, :true-branch ...
+;
 (defn build-tree
-  [rows score-fn]
+  [rows]
   (if (= (count rows) 0)
     (make-decision-node)
-    (let [best-gain     0.0
-	  best-criteria nil
-	  best-bets     nil
-	  col-count     (dec (count rows))]
-      (for [col-num (range (last-col (rows 0)))]
-	(let [col-vals (reduce (fn [accum col] (conj accum col)) #{} (map #(% col-num) rows))]
-	  (for [col-val col-vals]
-	    (let [{true-set :true-set false-set :false-set} (divide-set rows col-num col-val)]
-	      [true-set false-set])))))))
+    (let [{gain :gain, {col :col value :value} :criteria, {true-set :true-set false-set :false-set} :sets }
+	  (loop ; through columns to find best split for this set
+	      [bests {:gain 0 :criteria nil :sets nil :start-score (score-fn rows)}
+	       col          (dec (last-col (rows 0)))]
+	    (if (>= col 0)
+	      (recur (analyze-column bests rows col) (dec col))
+	      bests))]
+      (if (> gain 0)
+	(make-decision-node {:col col :value value
+			     :true-branch (build-tree true-set) :false-branch (build-tree false-set)})
+	(make-decision-node {:results (unique-counts rows (last-col (rows 0)))})))))
+
+
+
+;; for timing (and comparing) this and future versions of build-tree
+(defmacro times [n body]
+	"Time the execution of body n times"
+	`(time (dotimes [x# ~n] ~body)))
+
+;; to do: tail-call-optimized and then lazy implementations of build-tree
