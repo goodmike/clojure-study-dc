@@ -1,0 +1,96 @@
+slashdot	USA	yes	18	None
+google	France	yes	23	Premium
+digg	USA	yes	24	Basic
+kiwitobes	France	yes	23	Basic
+google	UK	no	21	Premium
+(direct)	New Zealand	no	12	None
+(direct)	UK	no	21	Basic
+google	USA	no	24	Premium
+slashdot	France	yes	19	None
+digg	USA	no	18	None
+google	UK	no	18	None
+kiwitobes	UK	no	19	None
+digg	New Zealand	yes	12	Basic
+slashdot	UK	no	21	None
+google	UK	yes	18	Basic
+kiwitobes	France	yes	19	Basic
+slashdot	USA	yes	38	Basic
+google	France	yes	23	Premium
+digg	USA	yes	25	Basic
+kiwitobes	USA	yes	23	Basic
+google	UK	yes	21	Premium
+(direct)	New Zealand	no	10	None
+(direct)	UK	no	19	Basic
+google	France	no	24	Premium
+slashdot	France	yes	18	None
+digg	USA	no	12	None
+google	UK	yes	18	None
+kiwitobes	UK	no	19	None
+digg	New Zealand	yes	11	None
+slashdot	UK	yes	21	None
+google	UK	yes	10	None
+kiwitobes	France	yes	24	Basic
+slashdot	USA	yes	17	None
+google	France	yes	22	Premium
+digg	USA	yes	25	Basic
+kiwitobes	France	yes	22	None
+google	UK	no	22	Premium
+(direct)	UK	no	13	None
+(direct)	UK	yes	22	Basic
+google	USA	no	25	Premium
+slashdot	France	yes	15	None
+digg	USA	no	17	None
+google	UK	no	19	Basic
+kiwitobes	UK	no	18	None
+digg	New Zealand	yes	13	Basic
+slashdot	UK	yes	20	None
+(direct)	UK	yes	19	Basic
+kiwitobes	France	yes	29	Basic
+slashdot	USA	yes	28	Basic
+google	France	yes	33	Premium
+digg	USA	yes	15	Basic
+digg	USA	yes	33	Basic
+google	UK	yes	21	Premium
+(direct)	New Zealand	no	10	None
+(direct)	UK	no	19	Basic
+google	France	no	24	Premium
+slashdot	France	yes	18	None
+digg	USA	no	12	None
+google	UK	yes	18	None
+kiwitobes	UK	no	19	None
+digg	New Zealand	yes	11	None
+slashdot	UK	yes	21	None
+google	UK	yes	10	None
+kiwitobes	France	yes	24	Basic
+slashdot	USA	yes	17	None
+google	France	yes	22	Premium
+digg	USA	yes	20	None
+kiwitobes	France	yes	22	None
+google	UK	no	20	Basic
+(direct)	UK	no	13	None
+(direct)	UK	yes	22	Basic
+google	USA	no	25	Premium
+slashdot	France	yes	15	None
+digg	USA	no	17	None
+google	UK	no	19	Basic
+kiwitobes	UK	no	18	None
+digg	New Zealand	no	11	None
+slashdot	UK	yes	20	None
+(direct)	UK	yes	19	Basic
+kiwitobes	France	yes	29	Basic
+slashdot	USA	yes	28	Basic
+google	France	yes	33	Premium
+digg	UK	yes	15	Basic
+digg	USA	yes	33	Basic
+google	UK	yes	21	Premium
+(direct)	New Zealand	no	10	None
+(direct)	UK	no	19	Basic
+google	France	no	24	Premium
+slashdot	France	yes	18	None
+digg	USA	no	12	None
+google	UK	yes	10	None
+kiwitobes	UK	no	19	None
+digg	New Zealand	yes	11	None
+slashdot	UK	yes	21	None
+google	UK	yes	10	None
+kiwitobes	France	yes	24	Basic

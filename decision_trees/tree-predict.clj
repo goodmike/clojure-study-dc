@@ -6,7 +6,7 @@
   [(filter f s) (filter (complement f) s)])
 
 ;; for loading tabular data into 2D-vector representation
-(def file-contents (slurp "/Users/michael/Documents/clojure-study-dc/decision_trees/example.txt"))
+(def file-contents (slurp "/Users/michael/Documents/clojure-study-dc/decision_trees/longer-example.txt"))
 
 (def data (apply vector (map #(apply vector %)
 			(map #(.split % "\\t") (#(.split % "\\n") file-contents)))))
@@ -103,6 +103,16 @@
 			     :true-branch (build-tree true-set) :false-branch (build-tree false-set)})
 	(make-decision-node {:results (unique-counts rows (last-col (rows 0)))})))))
 
+; Conventional crawling the tree to classify a new observation:
+(defn classify [observation tree]
+  (if (not (nil? (:results tree)))
+    (:results tree)
+    (let [test-op (if (.isInstance Number (:value tree))
+		    >=
+		    =)]
+      (recur observation (if (test-op (observation (:col tree)) (:value tree))
+			      (:true-branch  tree)
+			      (:false-branch tree))))))
 
 
 ;; for timing (and comparing) this and future versions of build-tree
@@ -110,4 +120,35 @@
 	"Time the execution of body n times"
 	`(time (dotimes [x# ~n] ~body)))
 
-;; to do: tail-call-optimized and then lazy implementations of build-tree
+
+; You come at build-tree with a set of rows and a sample data set (also a row in structure)
+
+(defn lazy-build-tree
+  [rows]
+  (lazy-seq (list
+    (if (= (count rows) 0)
+      (make-decision-node)
+    
+      (let [{gain :gain, {col :col value :value} :criteria, {true-set :true-set false-set :false-set} :sets }
+	    (loop ; through columns to find best split for this set
+		[bests {:gain 0 :criteria nil :sets nil :start-score (score-fn rows)}
+		 col          (dec (last-col (rows 0)))]
+	      (if (>= col 0)
+		(recur (analyze-column bests rows col) (dec col))
+		bests))]
+	(println "in lazy-build-tree")
+	(if (> gain 0)
+	  (make-decision-node {:col col :value value
+			       :true-branch (lazy-build-tree true-set) :false-branch (lazy-build-tree false-set)})
+	  (make-decision-node {:results (unique-counts rows (last-col (rows 0)))})))))))
+
+(defn classify-lazy [observation tree-seq]
+  (let [tree (first tree-seq)]
+    (if (not (nil? (:results tree)))
+      (:results tree)
+      (let [test-op (if (.isInstance Number (:value tree))
+		      >=
+		      =)]
+	(recur observation (if (test-op (observation (:col tree)) (:value tree))
+			     (:true-branch  tree)
+			     (:false-branch tree)))))))
